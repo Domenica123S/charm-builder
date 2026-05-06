@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PADOCIA — Charm Bar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Jost:wght@300;400;500&family=Poppins:wght@300;400;500;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #fccce4;
+      --white: #faf8f5;
+      --gold: #0a0a0a;
+      --gold-light: #0d0d0c;
+      --gray: #030303;
+      --border: rgba(201, 169, 110, 0.3);
+    }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 1rem 1.5rem;
+    }
+
+    header .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 40px;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: clamp(2.2rem, 6vw, 3.5rem);
+      font-weight: 700;
+      color: black;
+      letter-spacing: -2px;
+      line-height: 1.1;
+    }
+
+    header p {
+      font-size: 13px;
+      color: var(--gray);
+      margin-top: 10px;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      font-style: italic;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 780px;
+      padding: 0 1.5rem 4rem;
+    }
+
+    /* Necklace zone */
+    #necklace-zone {
+      position: relative;
+      width: 100%;
+      height: clamp(300px, 50vh, 600px);
+      border: none;
+      border-radius: 16px;
+      background: #ffffff;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+
+    #necklace-svg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #charms-container {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    #zone-hint {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 13px;
+      color: rgba(201,169,110,0.4);
+      pointer-events: none;
+      text-align: center;
+      letter-spacing: 0.08em;
+    }
+
+    /* Placed charms */
+    .placed-charm {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      transition: border-color 0.15s;
+    }
+
+    .placed-charm:active { cursor: grabbing; }
+
+    .placed-charm .remove-btn {
+      position: absolute;
+      top: -5px; right: -5px;
+      width: 17px; height: 17px;
+      border-radius: 50%;
+      background: transparent;
+      border: 0.5px solid var(--border);
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: black;
+    }
+
+    .placed-charm .remove-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Charm palette */
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .charm-palette {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+
+    .charm-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 8px;
+      border: 0.5px solid rgba(201,169,110,0.2);
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .charm-item:hover {
+      border-color: var(--gold);
+    }
+
+    .charm-item .icon { font-size: 24px; }
+
+    .charm-item .label {
+      font-size: 11px;
+      color: black;
+      text-align: center;
+      letter-spacing: 0.03em;
+      font-weight: bold;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: 'Jost', sans-serif;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 22px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 0.5px solid var(--border);
+      color: var(--gray);
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+    .btn-gold {
+      background: var(--gold);
+      border: none;
+      color: var(--black);
+      font-weight: 500;
+    }
+    .btn-gold:hover { background: var(--gold-light); }
+
+    #charm-count {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--gray);
+      letter-spacing: 0.05em;
+    }
+
+    /* How to use images note */
+    .image-tip {
+      margin-top: 2.5rem;
+      padding: 1.25rem 1.5rem;
+      border: 0.5px solid var(--border);
+      border-radius: 12px;
+      background: #161412;
+    }
+
+    .image-tip h3 {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .image-tip p {
+      font-size: 13px;
+      color: var(--gray);
+      line-height: 1.7;
+    }
+
+    .image-tip code {
+      font-family: monospace;
+      background: rgba(201,169,110,0.1);
+      color: var(--gold-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    /* Price calculator */
+.price-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.price-card {
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fde1f1;
+}
+.price-card .plabel {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--gray);
+  margin-bottom: 6px;
+}
+.price-card .pvalue {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--black);
+}
+.price-card .pvalue.gold { color: var(--gold); }
+.receipt {
+  margin-top: 1.5rem;
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: none;
+}
+.receipt.show { display: block; }
+.receipt-header {
+  background: #f8dff4;
+  padding: 10px 16px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 16px;
+  font-size: 13px;
+  color: var(--gray);
+  border-bottom: 0.5px solid var(--border);
+}
+.receipt-row:last-child { border-bottom: none; }
+.receipt-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  background: #fefdfd;
+  color: var(--gold);
+}
+
+/* Mobile optimizations */
+@media (max-width: 600px) {
+  header {
+    padding: 2rem 1rem 1rem;
+  }
+
+  header .brand {
+    font-size: 32px;
+  }
+
+  header h1 {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+  }
+
+  header p {
+    font-size: 14px;
+  }
+
+  .container {
+    padding: 0 0.5rem 3rem;
+  }
+
+  #necklace-zone {
+    height: clamp(250px, 45vh, 500px);
+  }
+
+  .price-bar {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .price-card {
+    padding: 10px 12px;
+  }
+
+  .price-card .plabel {
+    font-size: 10px;
+  }
+
+  .price-card .pvalue {
+    font-size: 18px;
+  }
+
+  .charm-palette {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+  }
+
+  .charm-item {
+    padding: 12px 6px;
+  }
+
+  .charm-item .icon {
+    font-size: 20px;
+  }
+
+  .charm-item .label {
+    font-size: 10px;
+  }
+
+  .btn {
+    font-size: 14px;
+    padding: 12px 24px;
+    min-height: 44px;
+  }
+
+  .receipt-row {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .receipt-total {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Padocia ✦ Charm Bar</div>
+  <h1>Build Your Necklace</h1>
+  <p>Tap a charm to add it · Drag to arrange · Make it yours</p>
+</header>
+
+<div class="container">
+<div class="price-bar">
+  <div class="price-card">
+    <div class="plabel">CHARMS SELECTED</div>
+    <div class="pvalue" id="count-val">0</div>
+  </div>
+  <div class="price-card">
+    <div class="plabel">BASE CHAIN</div>
+    <div class="pvalue">¥70.00</div>
+  </div>
+  <div class="price-card">
+    <div class="plabel">CHARMS TOTAL</div>
+    <div class="pvalue" id="charms-val">¥0.00</div>
+  </div>
+  <div class="price-card">
+    <div class="plabel">YOUR TOTAL</div>
+    <div class="pvalue gold" id="total-val">¥70.00</div>
+  </div>
+</div>
+
+  <div id="necklace-zone">
+    <svg id="necklace-svg" viewBox="0 0 780 280" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#c9a96e" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#c9a96e" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <image href="images/necklace.png" x="0" y="0" width="780" height="280" 
+  preserveAspectRatio="xMidYMid meet"/>
+    </svg>
+    <div id="charms-container"></div>
+    <div id="zone-hint">✦ tap a charm below to begin</div>
+  </div>
+
+  <div class="section-label">Choose your charms</div>
+
+  <div class="charm-palette" id="palette"></div>
+
+<div class="receipt" id="receipt">
+  <div class="receipt-header">Order Summary</div>
+  <div id="receipt-rows"></div>
+  <div class="receipt-total">
+    <span>Total</span>
+    <span id="receipt-total">¥0.00</span>
+  </div>
+</div>
+
+  <div class="actions">
+    <button class="btn btn-outline" id="clear-btn">Clear all</button>
+    <button class="btn btn-gold" id="share-btn">Share my design</button>
+    <span id="charm-count">0 charms</span>
+  </div>
+
+</div>
+
+<script>
+  const charms = [
+    { id: 'star',      icon: '<img src="images/star.png" style="width:94px;height:94px;object-fit:contain;">',     label: 'Star', price: 34.14 },
+    { id: 'moon',      icon: '<img src="images/moon.png" style="width:94px;height:94px;object-fit:contain;">', label: 'Moon', price: 34.14 },
+    { id: 'heart',     icon: '<img src="images/heart.png" style="width:94px;height:94px;object-fit:contain;">',     label: 'Heart', price: 34.14 },
+    { id: 'butterfly', icon: '<img src="images/butterfly.png" style="width:94px;height:94px;object-fit:contain;">', label: 'Butterfly', price: 34.14 },
+    { id: 'flower',    icon: '<img src="images/flower.png" style="width:94px;height:94px;object-fit:contain;">',    label: 'Flower', price: 34.14 },
+    { id: 'sun',       icon: '<img src="images/sun.png" style="width:94px;height:94px;object-fit:contain;">',       label: 'Sun', price: 34.14 },
+    { id: 'icecream',       icon: '<img src="images/icecream.png" style="width:94px;height:94px;object-fit:contain;">',       label: 'Ice Cream', price: 34.14 },
+    { id: 'bow',       icon: '<img src="images/bow.png" style="width:94px;height:94px;object-fit:contain;">',       label: 'Bow', price: 34.14 },
+    { id: 'eye',       icon: '<img src="images/eye.png" style="width:94px;height:94px;object-fit:contain;">',       label: 'Evil Eye', price: 34.14 },
+    { id: 'diamond',   icon: '<img src="images/diamond.png" style="width:94px;height:94px;object-fit:contain;">',   label: 'Crystal', price: 34.14 },
+    { id: 'clover',    icon: '<img src="images/clover.png" style="width:94px;height:94px;object-fit:contain;">',    label: 'Clover', price: 34.14 },
+    { id: 'mushroom',  icon: '<img src="images/mushroom.png" style="width:94px;height:94px;object-fit:contain;">',  label: 'Mushroom', price: 34.14 },
+    { id: 'cherry',    icon: '<img src="images/cherry.png" style="width:94px;height:94px;object-fit:contain;">',    label: 'Cherry', price: 34.14 },
+    { id: 'amor',    icon: '<img src="images/amor.png" style="width:94px;height:94px;object-fit:contain;">',    label: 'Amor', price: 34.14 },
+    { id: 'tennis',    icon: '<img src="images/tennis.png" style="width:94px;height:94px;object-fit:contain;">',    label: 'Tennis Ball', price: 34.14 },
+    { id: 'wine',    icon: '<img src="images/wine.png" style="width:94px;height:94px;object-fit:contain;">',    label: 'Wine Bottle', price: 34.14 },
+    {id:'cupid', icon:'<img src="images/cupid.png" style="width:94px;height:94px;object-fit:contain;">', label:'Cupid', price: 34.14},
+    {id:'ballerina', icon:'<img src="images/ballerina.png" style="width:94px;height:94px;object-fit:contain;">', label:'Ballerina', price: 34.14},
+    {id:'music', icon:'<img src="images/music.png" style="width:94px;height:94px;object-fit:contain;">', label:'Music Note', price: 34.14},
+    {id:'cheetah', icon:'<img src="images/cheetah.png" style="width:94px;height:94px;object-fit:contain;">', label:'Cheetah', price: 34.14},
+    {id: 'sparkle', icon:'<img src="images/sparkle.png" style="width:94px;height:94px;object-fit:contain;">', label:'Sparkle', price: 34.14},
+  ];
+
+  const palette   = document.getElementById('palette');
+  const container = document.getElementById('charms-container');
+  const zone      = document.getElementById('necklace-zone');
+  const hint      = document.getElementById('zone-hint');
+  const countEl   = document.getElementById('charm-count');
+
+  let placedCharms = [];
+  let dragEl = null, dragOffX = 0, dragOffY = 0;
+  let selectedCharm = null;
+
+  charms.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'charm-item';
+    el.innerHTML = `<span class="icon">${c.icon}</span><span class="label">${c.label}</span>`;
+    el.addEventListener('click', () => addCharm(c));
+    palette.appendChild(el);
+  });
+
+  function addCharm(c) {
+    hint.style.display = 'none';
+    const zRect = zone.getBoundingClientRect();
+    const count = placedCharms.length;
+    const t = (count * 0.13 + 0.1) % 0.85;
+    const wireX = 80 + t * (700 - 80);
+    const wireY = bezierY(t) + (Math.random() * 16 - 8);
+    const x = (wireX / 780) * zRect.width;
+    const y = (wireY / 280) * zRect.height;
+
+    const el = document.createElement('div');
+    el.className = 'placed-charm';
+    el.innerHTML = `<span style="font-size:22px;pointer-events:none;">${c.icon}</span><div class="remove-btn">✕</div>`;
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    el.dataset.rotation = 0;
+    el.dataset.scale = 1;
+    updateCharmTransform(el);
+
+    el.querySelector('.remove-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      container.removeChild(el);
+      placedCharms = placedCharms.filter(p => p.el !== el);
+      if (selectedCharm === el) selectedCharm = null;
+      updateCount();
+      if (placedCharms.length === 0) hint.style.display = '';
+    });
+
+    makeDraggable(el);
+    container.appendChild(el);
+    placedCharms.push({ id: c.id, el });
+    updateCount();
+  }
+
+  function bezierY(t) {
+    const p0y = 90, p1y = 260, p2y = 90;
+    return (1 - t) * (1 - t) * p0y + 2 * (1 - t) * t * p1y + t * t * p2y;
+  }
+
+  function updateCharmTransform(el) {
+    const rotation = parseInt(el.dataset.rotation || 0);
+    const scale = parseFloat(el.dataset.scale || 1);
+    el.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`;
+  }
+
+  function makeDraggable(el) {
+    el.addEventListener('click', e => {
+      if (e.target.classList.contains('remove-btn')) return;
+      if (selectedCharm) selectedCharm.classList.remove('selected');
+      selectedCharm = el;
+      el.classList.add('selected');
+    });
+
+    el.addEventListener('mousedown', e => {
+      if (e.target.classList.contains('remove-btn')) return;
+      e.preventDefault();
+      dragEl = el;
+      const rect = el.getBoundingClientRect();
+      dragOffX = e.clientX - (rect.left + rect.width / 2);
+      dragOffY = e.clientY - (rect.top + rect.height / 2);
+      el.style.zIndex = 20;
+    });
+
+    el.addEventListener('wheel', e => {
+      if (e.target.classList.contains('remove-btn')) return;
+      e.preventDefault();
+      if (selectedCharm && selectedCharm !== el) selectedCharm.classList.remove('selected');
+      selectedCharm = el;
+      el.classList.add('selected');
+      let scale = parseFloat(el.dataset.scale || 1);
+      scale += e.deltaY < 0 ? 0.05 : -0.05;
+      scale = Math.min(2, Math.max(0.5, scale));
+      el.dataset.scale = scale.toFixed(2);
+      updateCharmTransform(el);
+    }, { passive: false });
+
+    el.addEventListener('touchstart', e => {
+      if (e.target.classList.contains('remove-btn')) return;
+      e.preventDefault();
+      dragEl = el;
+      const touch = e.touches[0];
+      const rect  = el.getBoundingClientRect();
+      dragOffX = touch.clientX - (rect.left + rect.width / 2);
+      dragOffY = touch.clientY - (rect.top  + rect.height / 2);
+      el.style.zIndex = 20;
+    }, { passive: false });
+  }
+
+  document.addEventListener('mousemove', e => {
+    if (!dragEl) return;
+    const zRect = zone.getBoundingClientRect();
+    let x = e.clientX - zRect.left - dragOffX;
+    let y = e.clientY - zRect.top  - dragOffY;
+    x = Math.max(26, Math.min(zRect.width  - 26, x));
+    y = Math.max(26, Math.min(zRect.height - 26, y));
+    dragEl.style.left = x + 'px';
+    dragEl.style.top  = y + 'px';
+    updateCharmTransform(dragEl);
+  });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragEl) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const zRect = zone.getBoundingClientRect();
+    let x = touch.clientX - zRect.left - dragOffX;
+    let y = touch.clientY - zRect.top  - dragOffY;
+    x = Math.max(26, Math.min(zRect.width  - 26, x));
+    y = Math.max(26, Math.min(zRect.height - 26, y));
+    dragEl.style.left = x + 'px';
+    dragEl.style.top  = y + 'px';
+    updateCharmTransform(dragEl);
+  }, { passive: false });
+
+  document.addEventListener('mouseup',  () => { if (dragEl) { dragEl.style.zIndex = 10; dragEl = null; } });
+  document.addEventListener('touchend', () => { if (dragEl) { dragEl.style.zIndex = 10; dragEl = null; } });
+
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    container.innerHTML = '';
+    placedCharms = [];
+    selectedCharm = null;
+    hint.style.display = '';
+    updateCount();
+  });
+
+  document.getElementById('share-btn').addEventListener('click', async () => {
+    if (placedCharms.length === 0) {
+      alert('Add some charms first!');
+      return;
+    }
+    try {
+      await exportNecklaceImage();
+    } catch (err) {
+      console.error('Export failed:', err);
+      alert('Unable to save the necklace image.');
+    }
+  });
+
+  async function exportNecklaceImage() {
+    const zRect = zone.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(zRect.width * ratio);
+    canvas.height = Math.round(zRect.height * ratio);
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, zRect.width, zRect.height);
+
+    const bgImg = new Image();
+    bgImg.src = 'images/necklace.png';
+    await imageLoaded(bgImg);
+    ctx.drawImage(bgImg, 0, 0, zRect.width, zRect.height);
+
+    for (const placed of placedCharms) {
+      await drawPlacedCharm(ctx, placed.el);
+    }
+
+    const link = document.createElement('a');
+    link.download = 'necklace-design.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  function imageLoaded(img) {
+    return new Promise(resolve => {
+      if (img.complete && img.naturalWidth) {
+        resolve();
+      } else {
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+      }
+    });
+  }
+
+  async function drawPlacedCharm(ctx, el) {
+    const x = parseFloat(el.style.left || 0);
+    const y = parseFloat(el.style.top || 0);
+    const rotation = parseFloat(el.dataset.rotation || 0) * Math.PI / 180;
+    const scale = parseFloat(el.dataset.scale || 1);
+    const icon = el.querySelector('img');
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    ctx.scale(scale, scale);
+    if (icon) {
+      await imageLoaded(icon);
+      const width = parseFloat(getComputedStyle(icon).width) || icon.naturalWidth || 52;
+      const height = parseFloat(getComputedStyle(icon).height) || icon.naturalHeight || 52;
+      ctx.drawImage(icon, -width / 2, -height / 2, width, height);
+    } else {
+      const text = el.textContent.trim();
+      ctx.fillStyle = '#000';
+      ctx.font = '24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 0, 0);
+    }
+    ctx.restore();
+  }
+
+  const CHAIN_PRICE = 70;
+
+function updateCount() {
+  const n = placedCharms.length;
+  const charmsTotal = placedCharms.reduce((sum, p) => {
+    const charm = charms.find(c => c.id === p.id);
+    return sum + (charm ? charm.price : 0);
+  }, 0);
+  const total = CHAIN_PRICE + charmsTotal;
+
+  document.getElementById('count-val').textContent  = n;
+  document.getElementById('charms-val').textContent = '¥' + charmsTotal.toFixed(2);
+  document.getElementById('total-val').textContent  = '¥' + total.toFixed(2);
+  countEl.textContent = n === 0 ? '0 charms' : n + (n === 1 ? ' charm' : ' charms');
+
+  const receipt = document.getElementById('receipt');
+  if (n > 0) {
+    const counts = {};
+    placedCharms.forEach(p => {
+      const charm = charms.find(c => c.id === p.id);
+      if (!counts[p.id]) counts[p.id] = { charm, qty: 0 };
+      counts[p.id].qty++;
+    });
+    document.getElementById('receipt-rows').innerHTML =
+      `<div class="receipt-row"><span>Base chain</span><span>¥${CHAIN_PRICE.toFixed(2)}</span></div>` +
+      Object.values(counts).map(({ charm, qty }) =>
+        `<div class="receipt-row"><span>${charm.icon} ${charm.label} × ${qty}</span><span>¥${(charm.price * qty).toFixed(2)}</span></div>`
+      ).join('');
+    document.getElementById('receipt-total').textContent = '¥' + total.toFixed(2);
+    receipt.classList.add('show');
+  } else {
+    receipt.classList.remove('show');
+  }
+}
+
+  document.addEventListener('keydown', e => {
+    if (!selectedCharm) return;
+    let rotation = parseInt(selectedCharm.dataset.rotation || 0);
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      rotation -= 15;
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      rotation += 15;
+    } else return;
+    selectedCharm.dataset.rotation = rotation;
+    updateCharmTransform(selectedCharm);
+  });
+</script>
+</body>
+</html>
